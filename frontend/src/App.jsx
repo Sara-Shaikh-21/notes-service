@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:5001";
+const API_URL = "https://notes-service-2wmw.onrender.com";
 
 export default function App() {
   const [notes, setNotes] = useState([]);
