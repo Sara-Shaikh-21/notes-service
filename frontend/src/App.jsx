@@ -5,7 +5,7 @@ const API_URL = "http://localhost:5001";
 export default function App() {
   const [notes, setNotes] = useState([]);
   const [search, setSearch] = useState("");
-
+  const [shareEmails, setShareEmails] = useState({});
   const [registerData, setRegisterData] = useState({
     email: "",
     password: "",
@@ -152,20 +152,61 @@ export default function App() {
       console.error(error);
     }
   };
+  const handleShare = async (id) => {
+    const email = shareEmails[id];
 
+    if (!email) {
+      alert("Enter email to share");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/notes/${id}/share`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            share_with_email: email,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Note shared successfully");
+
+        setShareEmails({
+          ...shareEmails,
+          [id]: "",
+        });
+      } else {
+        alert(data.message || "Sharing failed");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    }
+  };
   const logout = () => {
     localStorage.removeItem("token");
     window.location.reload();
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-[#f8f5ee] p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold">Notes Service</h1>
-            <p className="text-gray-600 mt-1">
-              Multi-user notes backend frontend demo
+            <h1 className="text-5xl font-black text-[#3b3b3b]">
+              Sticky Notes
+            </h1>
+            <p className="text-gray-500 mt-2 text-lg">
+              Organize your ideas beautifully
             </p>
           </div>
 
@@ -197,14 +238,18 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl shadow-sm p-5 h-fit">
-            <h2 className="text-2xl font-semibold mb-5">
+          <div className="bg-white rounded-3xl shadow-lg p-6 h-fit sticky top-6 border border-gray-100">
+            <h2 className="text-3xl font-black text-gray-800 mb-2">
               Create Note
             </h2>
 
+            <p className="text-gray-500 mb-6">
+              Capture your thoughts instantly
+            </p>
+
             <input
               type="text"
-              placeholder="Note title"
+              placeholder="Note title..."
               value={noteData.title}
               onChange={(e) =>
                 setNoteData({
@@ -212,12 +257,12 @@ export default function App() {
                   title: e.target.value,
                 })
               }
-              className="w-full border rounded-xl px-4 py-3 mb-4 outline-none"
+              className="w-full bg-gray-100 rounded-2xl px-4 py-4 mb-4 outline-none border-none"
             />
 
             <textarea
-              rows="6"
-              placeholder="Write your note here..."
+              rows="8"
+              placeholder="Write something amazing..."
               value={noteData.content}
               onChange={(e) =>
                 setNoteData({
@@ -225,39 +270,76 @@ export default function App() {
                   content: e.target.value,
                 })
               }
-              className="w-full border rounded-xl px-4 py-3 mb-4 outline-none resize-none"
+              className="w-full bg-gray-100 rounded-2xl px-4 py-4 mb-5 outline-none resize-none border-none"
             />
 
             <button
               onClick={handleCreateNote}
-              className="w-full bg-black text-white py-3 rounded-xl"
+              className="w-full bg-black text-white py-4 rounded-2xl text-lg font-semibold hover:opacity-90 transition"
             >
-              Create Note
+              Add Note
             </button>
           </div>
 
-          <div className="lg:col-span-2 space-y-5">
-            {notes.map((note) => (
-              <div
-                key={note._id}
-                className="bg-white rounded-2xl shadow-sm p-5"
-              >
-                <h3 className="text-xl font-semibold mb-2">
-                  {note.title}
-                </h3>
+          <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {notes.map((note, index) => {
+                const colors = [
+                  "bg-yellow-200",
+                  "bg-pink-200",
+                  "bg-green-200",
+                  "bg-blue-200",
+                  "bg-orange-200",
+                ];
 
-                <p className="text-gray-700 mb-5">
-                  {note.content}
-                </p>
+                return (
+                  <div
+                    key={note._id}
+                    className={`${colors[index % colors.length]} p-5 rounded-3xl shadow-md min-h-[220px] flex flex-col justify-between transition hover:scale-[1.02]`}
+                  >
+                    <div>
+                      <h3 className="text-2xl font-bold mb-3 text-gray-800">
+                        {note.title}
+                      </h3>
 
-                <button
-                  onClick={() => handleDelete(note._id)}
-                  className="px-4 py-2 rounded-xl border"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
+                      <p className="text-gray-700 whitespace-pre-wrap">
+                        {note.content}
+                      </p>
+                    </div>
+
+                    <div className="mt-6">
+                      <input
+                        type="email"
+                        placeholder="Enter email to share"
+                        value={shareEmails[note._id] || ""}
+                        onChange={(e) =>
+                          setShareEmails({
+                            ...shareEmails,
+                            [note._id]: e.target.value,
+                          })
+                        }
+                        className="w-full mb-3 px-3 py-2 rounded-xl border-2 border-black bg-white text-black outline-none"
+                      />
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleShare(note._id)}
+                          className="bg-black text-white px-4 py-2 rounded-xl text-sm"
+                        >
+                          Share
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(note._id)}
+                          className="bg-white px-4 py-2 rounded-xl shadow text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
