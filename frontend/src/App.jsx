@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import stickyNotesImg from "../src/assets/Sticky_Notes.png";
 const API_URL = "https://notes-service-2wmw.onrender.com";
 
 export default function App() {
@@ -201,13 +201,24 @@ export default function App() {
     <div className="min-h-screen bg-[#f8f5ee] p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-5xl font-black text-[#3b3b3b]">
-              Sticky Notes
-            </h1>
-            <p className="text-gray-500 mt-2 text-lg">
-              Organize your ideas beautifully
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-3 rounded-2xl shadow-md border border-gray-200">
+              <img
+                src={stickyNotesImg}
+                alt="Sticky Notes"
+                className="w-16 h-16 object-contain"
+              />
+            </div>
+
+            <div>
+              <h1 className="text-5xl font-black text-[#3b3b3b] tracking-tight">
+                Sticky Notes
+              </h1>
+
+              <p className="text-gray-500 mt-1 text-lg">
+                Organize your ideas beautifully
+              </p>
+            </div>
           </div>
 
           {token && (
